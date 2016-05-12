@@ -4,7 +4,7 @@ public class Player {
 
     private int x, nx, y, ny;
     public int level = 0;
-    private boolean isAlive;
+    private boolean isAlive, hasAtk, hasJump, hasStun;
     
     public int getX() {
         return x;

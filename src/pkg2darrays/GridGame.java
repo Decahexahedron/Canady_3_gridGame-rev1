@@ -10,7 +10,8 @@ public class GridGame {
     static Scanner sc = new Scanner(System.in);
     public static boolean game, enemy1, enemy2, enemy3, stun, stun1, stun2, stun3;
     public static Player player;
-
+    String save = "░░";
+    
     public static void main(String[] args) {
         game = true;
         enemy1 = true;
@@ -21,6 +22,7 @@ public class GridGame {
         maxY = 30;
         counter = 0;
         stun = true;
+        player = new Player();
 
         String[][] map = new String[maxX][maxY];
         boolean[][] trap = new boolean[maxX][maxY];
@@ -64,7 +66,7 @@ public class GridGame {
             }
             clear(map, trap);
             if (score == 10) {
-                System.out.println("\\ \\ / / _ \\| | | | \\ \\      / /_ _| \\ | | |\n"
+                System.out.println("__   _____  _   _  __        _____ _   _ _ \n\\ \\ / / _ \\| | | | \\ \\      / /_ _| \\ | | |\n"
                         + " \\ V / | | | | | |  \\ \\ /\\ / / | ||  \\| | |\n"
                         + "  | || |_| | |_| |   \\ V  V /  | || |\\  |_|\n"
                         + "  |_| \\___/ \\___/     \\_/\\_/  |___|_| \\_(_)");
@@ -72,7 +74,7 @@ public class GridGame {
             }
         }
         if (!game && score < 10) {
-            System.out.println("\\ \\ / / _ \\| | | | | |   / _ \\/ ___|_   _|\n"
+            System.out.println("__   _____  _   _   _     ___  ____ _____ \n\\ \\ / / _ \\| | | | | |   / _ \\/ ___|_   _|\n"
                     + " \\ V / | | | | | | | |  | | | \\___ \\ | |  \n"
                     + "  | || |_| | |_| | | |__| |_| |___) || |  \n"
                     + "  |_| \\___/ \\___/  |_____\\___/|____/ |_|  \n" + "Your score was: " + score);
@@ -99,7 +101,7 @@ public class GridGame {
                     if (map[i][j] != "██" && map[i][j] != "##" && map[i][j] != "%%" && map[i][j] != "XK"
                             && map[i][j] != "^^" && map[i][j] != "vv" && map[i][j] != ">>" && map[i][j] != "<<"
                             && map[i][j] != "<^" && map[i][j] != "//" && map[i][j] != "**") {
-                        System.out.print("  ");
+                        System.out.print("∶∶");
                     } else {
                         System.out.print(map[i][j]);
                     }
@@ -107,7 +109,7 @@ public class GridGame {
                 } else if (map[i][j] != "██" && map[i][j] != "##" && map[i][j] != "%%" && map[i][j] != "XK"
                         && map[i][j] != "^^" && map[i][j] != "vv" && map[i][j] != ">>" && map[i][j] != "<<"
                         && map[i][j] != "<^" && map[i][j] != "//" && map[i][j] != "**") {
-                    System.out.println("░░");
+                    System.out.println("∶∶");
                 } else {
                     System.out.println(map[i][j]);
                 }
@@ -128,51 +130,51 @@ public class GridGame {
         }
 
         if (enemy[0][0] > player.getX() && !stun1 && enemy1) {
-            map[enemy[0][1]][enemy[0][0]] = "  ";
+            map[enemy[0][1]][enemy[0][0]] = "∶∶";
             enemy[0][0]--;
         }
         if (enemy[0][0] < player.getX() && !stun1 && enemy1) {
-            map[enemy[0][1]][enemy[0][0]] = "  ";
+            map[enemy[0][1]][enemy[0][0]] = "∶∶";
             enemy[0][0]++;
         }
         if (enemy[0][1] > player.getY() && !stun1 && enemy1) {
-            map[enemy[0][1]][enemy[0][0]] = "  ";
+            map[enemy[0][1]][enemy[0][0]] = "∶∶";
             enemy[0][1]--;
         }
         if (enemy[0][1] < player.getY() && !stun1 && enemy1) {
-            map[enemy[0][1]][enemy[0][0]] = "  ";
+            map[enemy[0][1]][enemy[0][0]] = "∶∶";
             enemy[0][1]++;
         }
         if (enemy[1][0] > player.getX() && !stun2 && enemy2) {
-            map[enemy[1][1]][enemy[1][0]] = "  ";
+            map[enemy[1][1]][enemy[1][0]] = "∶∶";
             enemy[1][0]--;
         }
         if (enemy[1][0] < player.getX() && !stun2 && enemy2) {
-            map[enemy[1][1]][enemy[1][0]] = "  ";
+            map[enemy[1][1]][enemy[1][0]] = "∶∶";
             enemy[1][0]++;
         }
         if (enemy[1][1] > player.getY() && !stun2 && enemy2) {
-            map[enemy[1][1]][enemy[1][0]] = "  ";
+            map[enemy[1][1]][enemy[1][0]] = "∶∶";
             enemy[1][1]--;
         }
         if (enemy[1][1] < player.getY() && !stun2 && enemy2) {
-            map[enemy[1][1]][enemy[1][0]] = "  ";
+            map[enemy[1][1]][enemy[1][0]] = "∶∶";
             enemy[1][1]++;
         }
         if (enemy[2][0] > player.getX() && !stun3 && enemy3) {
-            map[enemy[2][1]][enemy[2][0]] = "  ";
+            map[enemy[2][1]][enemy[2][0]] = "∶∶";
             enemy[2][0]--;
         }
         if (enemy[2][0] < player.getX() && !stun3 && enemy3) {
-            map[enemy[2][1]][enemy[2][0]] = "  ";
+            map[enemy[2][1]][enemy[2][0]] = "∶∶";
             enemy[2][0]++;
         }
         if (enemy[2][1] > player.getY() && !stun3 && enemy3) {
-            map[enemy[2][1]][enemy[2][0]] = "  ";
+            map[enemy[2][1]][enemy[2][0]] = "∶∶";
             enemy[2][1]--;
         }
         if (enemy[2][1] < player.getY() && !stun3 && enemy3) {
-            map[enemy[2][1]][enemy[2][0]] = "  ";
+            map[enemy[2][1]][enemy[2][0]] = "∶∶";
             enemy[2][1]++;
         }
         if (map[enemy[0][1]][enemy[0][0]] == "**" && stun) {
@@ -187,17 +189,17 @@ public class GridGame {
         if (enemy1) {
             map[enemy[0][1]][enemy[0][0]] = "XK";
         } else if (!enemy1) {
-            map[enemy[0][1]][enemy[0][0]] = "  ";
+            map[enemy[0][1]][enemy[0][0]] = "∶∶";
         }
         if (enemy2) {
             map[enemy[1][1]][enemy[1][0]] = "XK";
         } else if (!enemy2) {
-            map[enemy[1][1]][enemy[1][0]] = "  ";
+            map[enemy[1][1]][enemy[1][0]] = "∶∶";
         }
         if (enemy3) {
             map[enemy[2][1]][enemy[2][0]] = "XK";
         } else if (!enemy3) {
-            map[enemy[2][1]][enemy[2][0]] = "  ";
+            map[enemy[2][1]][enemy[2][0]] = "∶∶";
         }
 
         if (enemy[0][1] == player.getY() && enemy[0][0] == player.getX() && enemy1
@@ -219,19 +221,19 @@ public class GridGame {
     }
 
     public static void move(String[][] map, int movex, int movey, boolean[][] trap, boolean[][] treasure, int[][] enemy) {
-        map[player.getY()][player.getX()] = "  ";
+        map[player.getY()][player.getX()] = "∶∶";
         player.setNx(player.getNx() + movex);
-        player.setNy(player.getNy() + movex);
+        player.setNy(player.getNy() + movey);
         if (trap[player.getNx()][player.getNy()]) {
             game = false;
         }
         if (treasure[player.getNx()][player.getNy()]) {
-            map[player.getNx()][player.getNy()] = "  ";
+            map[player.getNx()][player.getNy()] = "∶∶";
             score++;
             treasure[player.getNx()][player.getNy()] = false;
         }
         player.setX(player.getX() + movex);
-        player.setY(player.getY() + movex);
+        player.setY(player.getY() + movey);
     }
 
     public static void clear(String[][] map, boolean[][] trap) {
@@ -240,10 +242,10 @@ public class GridGame {
                 if (map[i][j] == "^^" || map[i][j] == "vv" || map[i][j] == ">>" || map[i][j] == "<<"
                         || map[i][j] == "<^" || map[i][j] == "//") {
                     trap[i][j] = false;
-                    map[i][j] = "  ";
+                    map[i][j] = "∶∶";
                 }
                 if (map[i][j] == "**" && counter == 3) {
-                    map[i][j] = "  ";
+                    map[i][j] = "∶∶";
                     stun = false;
                     stun1 = false;
                     stun2 = false;
