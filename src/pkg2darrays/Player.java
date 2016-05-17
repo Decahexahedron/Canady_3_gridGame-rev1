@@ -3,9 +3,12 @@ package pkg2darrays;
 public class Player {
 
     private int x, nx, y, ny;
-    public int level = 0;
+    public int level = 0, hp, jumps;
     private boolean isAlive, hasAtk, hasJump, hasStun;
-    
+    Player(int a, int b){
+        this.x = a;
+        this.y = b;
+    }
     public int getX() {
         return x;
     }

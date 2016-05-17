@@ -8,30 +8,58 @@ public class GridGame {
     static String dinput;
     static String direction;
     static Scanner sc = new Scanner(System.in);
-    public static boolean game, enemy1, enemy2, enemy3, stun, stun1, stun2, stun3;
+    public static boolean game, stun;
     public static Player player;
+    public static Enemy enemya, enemyb, enemyc;
     String save = "░░";
-    
+
     public static void main(String[] args) {
         game = true;
-        enemy1 = true;
-        enemy2 = true;
-        enemy3 = true;
         score = 0;
         maxX = 30;
         maxY = 30;
         counter = 0;
         stun = true;
-        player = new Player();
+        player = new Player(4, 4);
 
         String[][] map = new String[maxX][maxY];
         boolean[][] trap = new boolean[maxX][maxY];
+        boolean[][] wall = new boolean[maxX][maxY];
         boolean[][] treasure = new boolean[maxX][maxY];
         int[][] enemy = new int[maxX][maxY];
+        setup(trap, treasure, wall);
+        System.out.println("Traps: ##, Enemies: XK, Treasure: %%" + "\n" + "Collect 10 points to win.");
+        map[player.getX()][player.getY()] = "██";
+        grid(map, trap, treasure, enemy, wall);
 
-        player.setX(4);
-        player.setY(4);
+        while (game) {
+            input(map, trap, treasure, enemy, wall);
+            enemies(map, trap, treasure, enemy);
+            grid(map, trap, treasure, enemy, wall);
+            if (stun) {
+                counter++;
+            }
+            clear(map, trap);
+            if (score == 10) {
+                System.out.println("__   _____  _   _  __        _____ _   _ _ \n"
+                        + "\\ \\ / / _ \\| | | | \\ \\      / /_ _| \\ | | |\n"
+                        + " \\ V / | | | | | |  \\ \\ /\\ / / | ||  \\| | |\n"
+                        + "  | || |_| | |_| |   \\ V  V /  | || |\\  |_|\n"
+                        + "  |_| \\___/ \\___/     \\_/\\_/  |___|_| \\_(_)");
+                game = false;
+            }
+        }
+        if (!game && score < 10) {
+            System.out.println("__   _____  _   _   _     ___  ____ _____ \n"
+                    + "\\ \\ / / _ \\| | | | | |   / _ \\/ ___|_   _|\n"
+                    + " \\ V / | | | | | | | |  | | | \\___ \\ | |  \n"
+                    + "  | || |_| | |_| | | |__| |_| |___) || |  \n"
+                    + "  |_| \\___/ \\___/  |_____\\___/|____/ |_|  \n" + "Your score was: " + score);
+        }
+    } // end of main
 
+    public static void setup(boolean[][] trap, boolean[][] treasure, boolean[][] wall) {
+        wall[4][2] = true;
         if (trap[player.getY()][player.getY()] == true) {
             player.setX((int) Math.floor(Math.random() * maxX));
             player.setY((int) Math.floor(Math.random() * maxY));
@@ -46,42 +74,25 @@ public class GridGame {
             int treasurey = (int) Math.floor(Math.random() * maxY);
             treasure[treasurex][treasurey] = true;
         }
-        for (int e = 0; e < 2; e++) {
+        for (int e = 0; e < 3; e++) {
             int enemyx = (int) Math.floor(Math.random() * maxX);
             int enemyy = (int) Math.floor(Math.random() * maxY);
-            enemy[e][1] = enemyx;
-            enemy[e][0] = enemyy;
+            if (e == 0) {
+                enemya = new Enemy(enemyx, enemyy, 1);
+            } else if (e == 1) {
+                enemyb = new Enemy(enemyx, enemyy, 1);
+            } else if (e == 2) {
+                enemyc = new Enemy(enemyx, enemyy, 1);
+            }
         }
         player.setNx(player.getX());
         player.setNy(player.getX());
-        System.out.println("Traps: ##, Enemies: XK, Treasure: %%" + "\n" + "Collect 10 points to win.");
-        map[player.getX()][player.getY()] = "██";
-        grid(map, trap, treasure, enemy);
-        while (game) {
-            input(map, trap, treasure, enemy);
-            enemies(map, trap, treasure, enemy);
-            grid(map, trap, treasure, enemy);
-            if (stun) {
-                counter++;
-            }
-            clear(map, trap);
-            if (score == 10) {
-                System.out.println("__   _____  _   _  __        _____ _   _ _ \n\\ \\ / / _ \\| | | | \\ \\      / /_ _| \\ | | |\n"
-                        + " \\ V / | | | | | |  \\ \\ /\\ / / | ||  \\| | |\n"
-                        + "  | || |_| | |_| |   \\ V  V /  | || |\\  |_|\n"
-                        + "  |_| \\___/ \\___/     \\_/\\_/  |___|_| \\_(_)");
-                game = false;
-            }
-        }
-        if (!game && score < 10) {
-            System.out.println("__   _____  _   _   _     ___  ____ _____ \n\\ \\ / / _ \\| | | | | |   / _ \\/ ___|_   _|\n"
-                    + " \\ V / | | | | | | | |  | | | \\___ \\ | |  \n"
-                    + "  | || |_| | |_| | | |__| |_| |___) || |  \n"
-                    + "  |_| \\___/ \\___/  |_____\\___/|____/ |_|  \n" + "Your score was: " + score);
-        }
-    } // end of main
+        enemya.setAlive(true);
+        enemyb.setAlive(true);
+        enemyc.setAlive(true);
+    }
 
-    public static void grid(String[][] map, boolean[][] trap, boolean[][] treasure, int[][] enemy) {
+    public static void grid(String[][] map, boolean[][] trap, boolean[][] treasure, int[][] enemy, boolean[][] wall) {
 
         for (int i = 0; i <= map[0].length - 1; i++) {
             for (int j = 0; j <= map[1].length - 1; j++) {
@@ -96,11 +107,13 @@ public class GridGame {
                 if (trap[j][i] && treasure[j][i]) {
                     trap[j][i] = false;
                 }
-
+                if (wall[j][i]) {
+                    map[i][j] = "░░";
+                }
                 if (j < map[1].length - 1) {
                     if (map[i][j] != "██" && map[i][j] != "##" && map[i][j] != "%%" && map[i][j] != "XK"
                             && map[i][j] != "^^" && map[i][j] != "vv" && map[i][j] != ">>" && map[i][j] != "<<"
-                            && map[i][j] != "<^" && map[i][j] != "//" && map[i][j] != "**") {
+                            && map[i][j] != "<^" && map[i][j] != "//" && map[i][j] != "**" && map[i][j] != "░░") {
                         System.out.print("∶∶");
                     } else {
                         System.out.print(map[i][j]);
@@ -108,7 +121,7 @@ public class GridGame {
 
                 } else if (map[i][j] != "██" && map[i][j] != "##" && map[i][j] != "%%" && map[i][j] != "XK"
                         && map[i][j] != "^^" && map[i][j] != "vv" && map[i][j] != ">>" && map[i][j] != "<<"
-                        && map[i][j] != "<^" && map[i][j] != "//" && map[i][j] != "**") {
+                        && map[i][j] != "<^" && map[i][j] != "//" && map[i][j] != "**" && map[i][j] != "░░") {
                     System.out.println("∶∶");
                 } else {
                     System.out.println(map[i][j]);
@@ -119,108 +132,109 @@ public class GridGame {
     } //end of grid
 
     public static void enemies(String[][] map, boolean[][] trap, boolean[][] treasure, int[][] enemy) {
-        if (trap[enemy[0][1]][enemy[0][0]]) {
-            enemy1 = false;
+        if (trap[enemya.getY()][enemya.getX()]) {
+            enemya.setAlive(true);
         }
-        if (trap[enemy[1][1]][enemy[1][0]]) {
-            enemy2 = false;
+        if (trap[enemyb.getY()][enemyb.getX()]) {
+            enemyb.setAlive(true);
         }
-        if (trap[enemy[2][1]][enemy[2][0]]) {
-            enemy3 = false;
-        }
-
-        if (enemy[0][0] > player.getX() && !stun1 && enemy1) {
-            map[enemy[0][1]][enemy[0][0]] = "∶∶";
-            enemy[0][0]--;
-        }
-        if (enemy[0][0] < player.getX() && !stun1 && enemy1) {
-            map[enemy[0][1]][enemy[0][0]] = "∶∶";
-            enemy[0][0]++;
-        }
-        if (enemy[0][1] > player.getY() && !stun1 && enemy1) {
-            map[enemy[0][1]][enemy[0][0]] = "∶∶";
-            enemy[0][1]--;
-        }
-        if (enemy[0][1] < player.getY() && !stun1 && enemy1) {
-            map[enemy[0][1]][enemy[0][0]] = "∶∶";
-            enemy[0][1]++;
-        }
-        if (enemy[1][0] > player.getX() && !stun2 && enemy2) {
-            map[enemy[1][1]][enemy[1][0]] = "∶∶";
-            enemy[1][0]--;
-        }
-        if (enemy[1][0] < player.getX() && !stun2 && enemy2) {
-            map[enemy[1][1]][enemy[1][0]] = "∶∶";
-            enemy[1][0]++;
-        }
-        if (enemy[1][1] > player.getY() && !stun2 && enemy2) {
-            map[enemy[1][1]][enemy[1][0]] = "∶∶";
-            enemy[1][1]--;
-        }
-        if (enemy[1][1] < player.getY() && !stun2 && enemy2) {
-            map[enemy[1][1]][enemy[1][0]] = "∶∶";
-            enemy[1][1]++;
-        }
-        if (enemy[2][0] > player.getX() && !stun3 && enemy3) {
-            map[enemy[2][1]][enemy[2][0]] = "∶∶";
-            enemy[2][0]--;
-        }
-        if (enemy[2][0] < player.getX() && !stun3 && enemy3) {
-            map[enemy[2][1]][enemy[2][0]] = "∶∶";
-            enemy[2][0]++;
-        }
-        if (enemy[2][1] > player.getY() && !stun3 && enemy3) {
-            map[enemy[2][1]][enemy[2][0]] = "∶∶";
-            enemy[2][1]--;
-        }
-        if (enemy[2][1] < player.getY() && !stun3 && enemy3) {
-            map[enemy[2][1]][enemy[2][0]] = "∶∶";
-            enemy[2][1]++;
-        }
-        if (map[enemy[0][1]][enemy[0][0]] == "**" && stun) {
-            stun1 = true;
-        }
-        if (map[enemy[1][1]][enemy[1][0]] == "**" && stun) {
-            stun2 = true;
-        }
-        if (map[enemy[2][1]][enemy[2][0]] == "**" && stun) {
-            stun3 = true;
-        }
-        if (enemy1) {
-            map[enemy[0][1]][enemy[0][0]] = "XK";
-        } else if (!enemy1) {
-            map[enemy[0][1]][enemy[0][0]] = "∶∶";
-        }
-        if (enemy2) {
-            map[enemy[1][1]][enemy[1][0]] = "XK";
-        } else if (!enemy2) {
-            map[enemy[1][1]][enemy[1][0]] = "∶∶";
-        }
-        if (enemy3) {
-            map[enemy[2][1]][enemy[2][0]] = "XK";
-        } else if (!enemy3) {
-            map[enemy[2][1]][enemy[2][0]] = "∶∶";
+        if (trap[enemyc.getY()][enemyc.getX()]) {
+            enemyc.setAlive(true);
         }
 
-        if (enemy[0][1] == player.getY() && enemy[0][0] == player.getX() && enemy1
-                || enemy[1][1] == player.getY() && enemy[1][0] == player.getX() && enemy2
-                || enemy[2][1] == player.getY() && enemy[2][0] == player.getX() && enemy2) {
+        if (enemya.getX() > player.getX() && !enemya.isStun() && enemya.isAlive()) {
+            map[enemya.getY()][enemya.getX()] = "∶∶";
+//            enemy[0][0]--;
+            enemya.setX(enemya.getX() - 1);
+        }
+        if (enemya.getX() < player.getX() && !enemya.isStun() && enemya.isAlive()) {
+            map[enemya.getY()][enemya.getX()] = "∶∶";
+            enemya.setX(enemya.getX() + 1);
+        }
+        if (enemya.getY() > player.getY() && !enemya.isStun() && enemya.isAlive()) {
+            map[enemya.getY()][enemya.getX()] = "∶∶";
+            enemya.setY(enemya.getY() - 1);
+        }
+        if (enemya.getY() < player.getY() && !enemya.isStun() && enemya.isAlive()) {
+            map[enemya.getY()][enemya.getX()] = "∶∶";
+            enemya.setY(enemya.getY() + 1);
+        }
+        if (enemyb.getX() > player.getX() && !enemyb.isStun() && enemyb.isAlive()) {
+            map[enemyb.getY()][enemyb.getX()] = "∶∶";
+            enemyb.setX(enemyb.getX() - 1);
+        }
+        if (enemyb.getX() < player.getX() && !enemyb.isStun() && enemyb.isAlive()) {
+            map[enemyb.getY()][enemyb.getX()] = "∶∶";
+            enemyb.setX(enemyb.getX() + 1);
+        }
+        if (enemyb.getY() > player.getY() && !enemyb.isStun() && enemyb.isAlive()) {
+            map[enemyb.getY()][enemyb.getX()] = "∶∶";
+            enemyb.setY(enemyb.getY() - 1);
+        }
+        if (enemyb.getY() < player.getY() && !enemyb.isStun() && enemyb.isAlive()) {
+            map[enemyb.getY()][enemyb.getX()] = "∶∶";
+            enemyb.setY(enemyb.getY() + 1);
+        }
+        if (enemyc.getX() > player.getX() && !enemyc.isStun() && enemyc.isAlive()) {
+            map[enemyc.getY()][enemyc.getX()] = "∶∶";
+            enemyc.setX(enemyc.getX() - 1);
+        }
+        if (enemyc.getX() < player.getX() && !enemyc.isStun() && enemyc.isAlive()) {
+            map[enemyc.getY()][enemyc.getX()] = "∶∶";
+            enemyc.setX(enemyc.getX() + 1);
+        }
+        if (enemyc.getY() > player.getY() && !enemyc.isStun() && enemyc.isAlive()) {
+            map[enemyc.getY()][enemyc.getX()] = "∶∶";
+            enemyc.setY(enemyc.getY() - 1);
+        }
+        if (enemyc.getY() < player.getY() && !enemyc.isStun() && enemyc.isAlive()) {
+            map[enemyc.getY()][enemyc.getX()] = "∶∶";
+            enemyc.setY(enemyc.getY() + 1);
+        }
+        if (map[enemya.getY()][enemya.getX()] == "**" && stun) {
+            enemya.setStun(true);
+        }
+        if (map[enemyb.getY()][enemyb.getX()] == "**" && stun) {
+            enemyb.setStun(true);
+        }
+        if (map[enemyc.getY()][enemyc.getX()] == "**" && stun) {
+            enemyc.setStun(true);
+        }
+        if (enemya.isAlive()) {
+            map[enemya.getY()][enemya.getX()] = "XK";
+        } else if (!enemya.isAlive()) {
+            map[enemya.getY()][enemya.getX()] = "∶∶";
+        }
+        if (enemyb.isAlive()) {
+            map[enemyb.getY()][enemyb.getX()] = "XK";
+        } else if (!enemyb.isAlive()) {
+            map[enemyb.getY()][enemyb.getX()] = "∶∶";
+        }
+        if (enemyc.isAlive()) {
+            map[enemyc.getY()][enemyc.getX()] = "XK";
+        } else if (!enemyc.isAlive()) {
+            map[enemyc.getY()][enemyc.getX()] = "∶∶";
+        }
+
+        if (enemya.getY() == player.getY() && enemya.getX() == player.getX() && enemya.isAlive()
+                || enemyb.getY() == player.getY() && enemyb.getX() == player.getX() && enemyb.isAlive()
+                || enemyc.getY() == player.getY() && enemyc.getX() == player.getX() && enemyb.isAlive()) {
             game = false;
         }
 
-        if (trap[enemy[0][1]][enemy[0][0]]) {
-            enemy1 = false;
+        if (trap[enemya.getY()][enemya.getX()]) {
+            enemya.setAlive(true);
         }
-        if (trap[enemy[1][1]][enemy[1][0]]) {
-            enemy2 = false;
+        if (trap[enemyb.getY()][enemyb.getX()]) {
+            enemyb.setAlive(true);
         }
-        if (trap[enemy[2][1]][enemy[2][0]]) {
-            enemy3 = false;
+        if (trap[enemyc.getY()][enemyc.getX()]) {
+            enemyc.setAlive(true);
         }
 
     }
 
-    public static void move(String[][] map, int movex, int movey, boolean[][] trap, boolean[][] treasure, int[][] enemy) {
+    public static void move(String[][] map, int movex, int movey, boolean[][] trap, boolean[][] treasure, int[][] enemy, boolean[][] wall) {
         map[player.getY()][player.getX()] = "∶∶";
         player.setNx(player.getNx() + movex);
         player.setNy(player.getNy() + movey);
@@ -231,6 +245,12 @@ public class GridGame {
             map[player.getNx()][player.getNy()] = "∶∶";
             score++;
             treasure[player.getNx()][player.getNy()] = false;
+        }
+        if (wall[player.getNx()][player.getNy()]) {
+            movex = 0;
+            movey = 0;
+            player.setNx(player.getX());
+            player.setNy(player.getY());
         }
         player.setX(player.getX() + movex);
         player.setY(player.getY() + movey);
@@ -247,45 +267,45 @@ public class GridGame {
                 if (map[i][j] == "**" && counter == 3) {
                     map[i][j] = "∶∶";
                     stun = false;
-                    stun1 = false;
-                    stun2 = false;
-                    stun3 = false;
+                    enemya.setStun(false);
+                    enemyb.setStun(false);
+                    enemyc.setStun(false);
                 }
             }
         }
     }
 
-    public static void input(String[][] map, boolean[][] trap, boolean[][] treasure, int[][] enemy) {
+    public static void input(String[][] map, boolean[][] trap, boolean[][] treasure, int[][] enemy, boolean[][] wall) {
         System.out.print("Enter direction (W, A, S, D or diagonals), F to attack, G to stun, your score is " + score + ": ");
         dinput = sc.nextLine().toLowerCase();
 
         if (dinput.equalsIgnoreCase("w") && player.getY() != maxX - 1) {
-            move(map, 0, -1, trap, treasure, enemy);
+            move(map, 0, -1, trap, treasure, enemy, wall);
             direction = "w";
         } else if (dinput.equalsIgnoreCase("d") && player.getX() != maxX - 1) {
-            move(map, 1, 0, trap, treasure, enemy);
+            move(map, 1, 0, trap, treasure, enemy, wall);
             direction = "d";
         } else if (dinput.equalsIgnoreCase("s") && player.getY() != maxX - 1) {
-            move(map, 0, 1, trap, treasure, enemy);
+            move(map, 0, 1, trap, treasure, enemy, wall);
             direction = "s";
         } else if (dinput.equalsIgnoreCase("a") && player.getX() != 0) {
-            move(map, -1, 0, trap, treasure, enemy);
+            move(map, -1, 0, trap, treasure, enemy, wall);
             direction = "a";
         } else if (dinput.equalsIgnoreCase("wd") && player.getY() != 0 && player.getX() != maxX - 1
                 || dinput.equalsIgnoreCase("dw") && player.getY() != 0 && player.getX() != maxX - 1) {
-            move(map, 1, -1, trap, treasure, enemy);
+            move(map, 1, -1, trap, treasure, enemy, wall);
             direction = "wd";
         } else if (dinput.equalsIgnoreCase("wa") && player.getY() != 0 && player.getX() != 0
                 || dinput.equalsIgnoreCase("aw") && player.getY() != 0 && player.getX() != 0) {
-            move(map, -1, -1, trap, treasure, enemy);
+            move(map, -1, -1, trap, treasure, enemy, wall);
             direction = "wa";
         } else if (dinput.equalsIgnoreCase("sd") && player.getY() != maxX - 1 && player.getX() != maxX - 1
                 || dinput.equalsIgnoreCase("ds") && player.getY() != maxX - 1 && player.getX() != maxX - 1) {
-            move(map, 1, 1, trap, treasure, enemy);
+            move(map, 1, 1, trap, treasure, enemy, wall);
             direction = "sd";
         } else if (dinput.equalsIgnoreCase("sa") && player.getY() != maxX - 1 && player.getX() != 0
                 || dinput.equalsIgnoreCase("as") && player.getY() != maxX - 1 && player.getX() != 0) {
-            move(map, -1, 1, trap, treasure, enemy);
+            move(map, -1, 1, trap, treasure, enemy, wall);
             direction = "sa";
         } else if (dinput.equalsIgnoreCase("f") && direction == "w") {
             map[player.getY() - 1][player.getX()] = "^^";
@@ -348,7 +368,7 @@ public class GridGame {
             map[player.getY() + 1][player.getX() - 1] = "**";
         } else {
             System.out.println("Sorry, wrong input or reached map edge");
-            input(map, trap, treasure, enemy);
+            input(map, trap, treasure, enemy, wall);
         }
         if (game) {
             map[player.getY()][player.getX()] = "██";
