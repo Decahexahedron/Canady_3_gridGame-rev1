@@ -1,17 +1,19 @@
 package pkg2darrays;
 
 import java.util.Scanner;
+import java.util.ArrayList;
 
 public class GridGame {
 
     public static int maxX, maxY, score, counter;
-    static String dinput;
+    static String dinput, level;
     static String direction;
     static Scanner sc = new Scanner(System.in);
     public static boolean game, stun;
     public static Player player;
     public static Enemy enemya, enemyb, enemyc;
     String save = "░░";
+    public static ArrayList<Enemy> enemylist = new ArrayList();
 
     public static void main(String[] args) {
         game = true;
@@ -28,35 +30,57 @@ public class GridGame {
         boolean[][] treasure = new boolean[maxX][maxY];
         int[][] enemy = new int[maxX][maxY];
         setup(trap, treasure, wall);
-        System.out.println("Traps: ##, Enemies: XK, Treasure: %%" + "\n" + "Collect 10 points to win.");
+        begin();
         map[player.getX()][player.getY()] = "██";
         grid(map, trap, treasure, enemy, wall);
 
         while (game) {
             input(map, trap, treasure, enemy, wall);
-            enemies(map, trap, treasure, enemy);
+            enemies(map, trap, treasure, enemy, wall);
             grid(map, trap, treasure, enemy, wall);
             if (stun) {
                 counter++;
             }
             clear(map, trap);
             if (score == 10) {
-                System.out.println("__   _____  _   _  __        _____ _   _ _ \n"
-                        + "\\ \\ / / _ \\| | | | \\ \\      / /_ _| \\ | | |\n"
-                        + " \\ V / | | | | | |  \\ \\ /\\ / / | ||  \\| | |\n"
-                        + "  | || |_| | |_| |   \\ V  V /  | || |\\  |_|\n"
-                        + "  |_| \\___/ \\___/     \\_/\\_/  |___|_| \\_(_)");
-                game = false;
+                win();
             }
         }
         if (!game && score < 10) {
-            System.out.println("__   _____  _   _   _     ___  ____ _____ \n"
-                    + "\\ \\ / / _ \\| | | | | |   / _ \\/ ___|_   _|\n"
-                    + " \\ V / | | | | | | | |  | | | \\___ \\ | |  \n"
-                    + "  | || |_| | |_| | | |__| |_| |___) || |  \n"
-                    + "  |_| \\___/ \\___/  |_____\\___/|____/ |_|  \n" + "Your score was: " + score);
+            lose();
         }
     } // end of main
+
+    public static void begin() {
+        System.out.println("Traps: ##, Enemies: XK, Treasure: %%" + "\n" + "Collect 10 points to win.");
+        System.out.println("Choose your first ability! Jump, attack, or stun (type j, a, or s).");
+        player.setLevel(0);
+        level = sc.nextLine().toLowerCase();
+        if (level.equals("j")) {
+            player.setHasJump(true);
+        } else if (level.equals("a")) {
+            player.setHasAtk(true);
+        } else if (level.equals("s")) {
+            player.setHasStun(true);
+        }
+    }
+
+    public static void win() {
+        System.out.println("__   _____  _   _  __        _____ _   _ _ \n"
+                + "\\ \\ / / _ \\| | | | \\ \\      / /_ _| \\ | | |\n"
+                + " \\ V / | | | | | |  \\ \\ /\\ / / | ||  \\| | |\n"
+                + "  | || |_| | |_| |   \\ V  V /  | || |\\  |_|\n"
+                + "  |_| \\___/ \\___/     \\_/\\_/  |___|_| \\_(_)");
+        game = false;
+    }
+
+    public static void lose() {
+        System.out.println("__   _____  _   _   _     ___  ____ _____ \n"
+                + "\\ \\ / / _ \\| | | | | |   / _ \\/ ___|_   _|\n"
+                + " \\ V / | | | | | | | |  | | | \\___ \\ | |  \n"
+                + "  | || |_| | |_| | | |__| |_| |___) || |  \n"
+                + "  |_| \\___/ \\___/  |_____\\___/|____/ |_|  \n" + "Your score was: " + score);
+    }
 
     public static void setup(boolean[][] trap, boolean[][] treasure, boolean[][] wall) {
         wall[4][2] = true;
@@ -79,10 +103,13 @@ public class GridGame {
             int enemyy = (int) Math.floor(Math.random() * maxY);
             if (e == 0) {
                 enemya = new Enemy(enemyx, enemyy, 1);
+                enemylist.add(enemya);
             } else if (e == 1) {
                 enemyb = new Enemy(enemyx, enemyy, 1);
+                enemylist.add(enemyb);
             } else if (e == 2) {
                 enemyc = new Enemy(enemyx, enemyy, 1);
+                enemylist.add(enemyc);
             }
         }
         player.setNx(player.getX());
@@ -90,6 +117,15 @@ public class GridGame {
         enemya.setAlive(true);
         enemyb.setAlive(true);
         enemyc.setAlive(true);
+    }
+
+    public static void help() {
+        System.out.println("Pressing g will stun (if stun is unlocked) in a 3x3 around the player.\n"
+                + "It only stuns on the first turn it is active, but will stun an enemy for 3 turns.\n"
+                + "Upgrading stun will increase the turns an enemy is stunned.\n"
+                + "Attacking by just typing f will attack in the direction you just moved.\n"
+                + "Typing a direction and f in one input will pivot-attack, or attack in that direction without moving.\n"
+                + "Diagonal pivot-attacks only work if you type the vertical direction first.");
     }
 
     public static void grid(String[][] map, boolean[][] trap, boolean[][] treasure, int[][] enemy, boolean[][] wall) {
@@ -131,107 +167,59 @@ public class GridGame {
 
     } //end of grid
 
-    public static void enemies(String[][] map, boolean[][] trap, boolean[][] treasure, int[][] enemy) {
-        if (trap[enemya.getY()][enemya.getX()]) {
-            enemya.setAlive(true);
-        }
-        if (trap[enemyb.getY()][enemyb.getX()]) {
-            enemyb.setAlive(true);
-        }
-        if (trap[enemyc.getY()][enemyc.getX()]) {
-            enemyc.setAlive(true);
-        }
+    public static void enemies(String[][] map, boolean[][] trap, boolean[][] treasure, int[][] enemy, boolean[][] wall) {
 
-        if (enemya.getX() > player.getX() && !enemya.isStun() && enemya.isAlive()) {
-            map[enemya.getY()][enemya.getX()] = "∶∶";
-//            enemy[0][0]--;
-            enemya.setX(enemya.getX() - 1);
+        for (Enemy e : enemylist) {
+            if (trap[e.getY()][e.getX()]) {
+                e.setAlive(false);
+            }
+            if (e.getX() > player.getX() && !e.isStun() && e.isAlive()) {
+                map[e.getY()][e.getX()] = "∶∶";
+                e.setX(e.getX() - 1);
+                if (wall[e.getX()][e.getY()]) {
+                    e.setX(e.getX() + 1);
+                    map[e.getY()][e.getX()] = "XK";
+                }
+            }
+            if (e.getX() < player.getX() && !e.isStun() && e.isAlive()) {
+                map[e.getY()][e.getX()] = "∶∶";
+                e.setX(e.getX() + 1);
+                if (wall[e.getX()][e.getY()]) {
+                    e.setX(e.getX() - 1);
+                    map[e.getY()][e.getX()] = "XK";
+                }
+            }
+            if (e.getY() > player.getY() && !e.isStun() && e.isAlive()) {
+                map[e.getY()][e.getX()] = "∶∶";
+                e.setY(e.getY() - 1);
+                if (wall[e.getX()][e.getY()]) {
+                    e.setY(e.getY() + 1);
+                    map[e.getY()][e.getX()] = "XK";
+                }
+            }
+            if (e.getY() < player.getY() && !e.isStun() && e.isAlive()) {
+                map[e.getY()][e.getX()] = "∶∶";
+                e.setY(e.getY() + 1);
+                if (wall[e.getX()][e.getY()]) {
+                    e.setY(e.getY() - 1);
+                    map[e.getY()][e.getX()] = "XK";
+                }
+            }
+            if (map[e.getY()][e.getX()] == "**" && stun) {
+                e.setStun(true);
+            }
+            if (e.isAlive()) {
+                map[e.getY()][e.getX()] = "XK";
+            } else if (!e.isAlive()) {
+                map[e.getY()][e.getX()] = "∶∶";
+            }
+            if (e.getY() == player.getY() && e.getX() == player.getX() && e.isAlive()) {
+                game = false;
+            }
+            if (trap[e.getY()][e.getX()]) {
+                e.setAlive(false);
+            }
         }
-        if (enemya.getX() < player.getX() && !enemya.isStun() && enemya.isAlive()) {
-            map[enemya.getY()][enemya.getX()] = "∶∶";
-            enemya.setX(enemya.getX() + 1);
-        }
-        if (enemya.getY() > player.getY() && !enemya.isStun() && enemya.isAlive()) {
-            map[enemya.getY()][enemya.getX()] = "∶∶";
-            enemya.setY(enemya.getY() - 1);
-        }
-        if (enemya.getY() < player.getY() && !enemya.isStun() && enemya.isAlive()) {
-            map[enemya.getY()][enemya.getX()] = "∶∶";
-            enemya.setY(enemya.getY() + 1);
-        }
-        if (enemyb.getX() > player.getX() && !enemyb.isStun() && enemyb.isAlive()) {
-            map[enemyb.getY()][enemyb.getX()] = "∶∶";
-            enemyb.setX(enemyb.getX() - 1);
-        }
-        if (enemyb.getX() < player.getX() && !enemyb.isStun() && enemyb.isAlive()) {
-            map[enemyb.getY()][enemyb.getX()] = "∶∶";
-            enemyb.setX(enemyb.getX() + 1);
-        }
-        if (enemyb.getY() > player.getY() && !enemyb.isStun() && enemyb.isAlive()) {
-            map[enemyb.getY()][enemyb.getX()] = "∶∶";
-            enemyb.setY(enemyb.getY() - 1);
-        }
-        if (enemyb.getY() < player.getY() && !enemyb.isStun() && enemyb.isAlive()) {
-            map[enemyb.getY()][enemyb.getX()] = "∶∶";
-            enemyb.setY(enemyb.getY() + 1);
-        }
-        if (enemyc.getX() > player.getX() && !enemyc.isStun() && enemyc.isAlive()) {
-            map[enemyc.getY()][enemyc.getX()] = "∶∶";
-            enemyc.setX(enemyc.getX() - 1);
-        }
-        if (enemyc.getX() < player.getX() && !enemyc.isStun() && enemyc.isAlive()) {
-            map[enemyc.getY()][enemyc.getX()] = "∶∶";
-            enemyc.setX(enemyc.getX() + 1);
-        }
-        if (enemyc.getY() > player.getY() && !enemyc.isStun() && enemyc.isAlive()) {
-            map[enemyc.getY()][enemyc.getX()] = "∶∶";
-            enemyc.setY(enemyc.getY() - 1);
-        }
-        if (enemyc.getY() < player.getY() && !enemyc.isStun() && enemyc.isAlive()) {
-            map[enemyc.getY()][enemyc.getX()] = "∶∶";
-            enemyc.setY(enemyc.getY() + 1);
-        }
-        if (map[enemya.getY()][enemya.getX()] == "**" && stun) {
-            enemya.setStun(true);
-        }
-        if (map[enemyb.getY()][enemyb.getX()] == "**" && stun) {
-            enemyb.setStun(true);
-        }
-        if (map[enemyc.getY()][enemyc.getX()] == "**" && stun) {
-            enemyc.setStun(true);
-        }
-        if (enemya.isAlive()) {
-            map[enemya.getY()][enemya.getX()] = "XK";
-        } else if (!enemya.isAlive()) {
-            map[enemya.getY()][enemya.getX()] = "∶∶";
-        }
-        if (enemyb.isAlive()) {
-            map[enemyb.getY()][enemyb.getX()] = "XK";
-        } else if (!enemyb.isAlive()) {
-            map[enemyb.getY()][enemyb.getX()] = "∶∶";
-        }
-        if (enemyc.isAlive()) {
-            map[enemyc.getY()][enemyc.getX()] = "XK";
-        } else if (!enemyc.isAlive()) {
-            map[enemyc.getY()][enemyc.getX()] = "∶∶";
-        }
-
-        if (enemya.getY() == player.getY() && enemya.getX() == player.getX() && enemya.isAlive()
-                || enemyb.getY() == player.getY() && enemyb.getX() == player.getX() && enemyb.isAlive()
-                || enemyc.getY() == player.getY() && enemyc.getX() == player.getX() && enemyb.isAlive()) {
-            game = false;
-        }
-
-        if (trap[enemya.getY()][enemya.getX()]) {
-            enemya.setAlive(true);
-        }
-        if (trap[enemyb.getY()][enemyb.getX()]) {
-            enemyb.setAlive(true);
-        }
-        if (trap[enemyc.getY()][enemyc.getX()]) {
-            enemyc.setAlive(true);
-        }
-
     }
 
     public static void move(String[][] map, int movex, int movey, boolean[][] trap, boolean[][] treasure, int[][] enemy, boolean[][] wall) {
@@ -278,7 +266,9 @@ public class GridGame {
     public static void input(String[][] map, boolean[][] trap, boolean[][] treasure, int[][] enemy, boolean[][] wall) {
         System.out.print("Enter direction (W, A, S, D or diagonals), F to attack, G to stun, your score is " + score + ": ");
         dinput = sc.nextLine().toLowerCase();
-
+        if (dinput.equalsIgnoreCase("help")) {
+            help();
+        }
         if (dinput.equalsIgnoreCase("w") && player.getY() != maxX - 1) {
             move(map, 0, -1, trap, treasure, enemy, wall);
             direction = "w";
@@ -307,56 +297,55 @@ public class GridGame {
                 || dinput.equalsIgnoreCase("as") && player.getY() != maxX - 1 && player.getX() != 0) {
             move(map, -1, 1, trap, treasure, enemy, wall);
             direction = "sa";
-        } else if (dinput.equalsIgnoreCase("f") && direction == "w") {
+        } else if (dinput.equalsIgnoreCase("f") && direction == "w" && player.isHasAtk()) {
             map[player.getY() - 1][player.getX()] = "^^";
             trap[player.getY() - 1][player.getX()] = true;
-        } else if (dinput.equalsIgnoreCase("f") && direction == "s") {
+        } else if (dinput.equalsIgnoreCase("f") && direction == "s" && player.isHasAtk()) {
             map[player.getY() + 1][player.getX()] = "vv";
             trap[player.getY() + 1][player.getX()] = true;
-        } else if (dinput.equalsIgnoreCase("f") && direction == "d") {
+        } else if (dinput.equalsIgnoreCase("f") && direction == "d" && player.isHasAtk()) {
             map[player.getY()][player.getX() + 1] = ">>";
             trap[player.getY()][player.getX() + 1] = true;
-        } else if (dinput.equalsIgnoreCase("f") && direction == "a") {
+        } else if (dinput.equalsIgnoreCase("f") && direction == "a" && player.isHasAtk()) {
             map[player.getY()][player.getX() - 1] = "<<";
             trap[player.getY()][player.getX() - 1] = true;
-        } else if (dinput.equalsIgnoreCase("f") && direction == "wd") {
+        } else if (dinput.equalsIgnoreCase("f") && direction == "wd" && player.isHasAtk()) {
             map[player.getY() - 1][player.getX() + 1] = "//";
             trap[player.getY() - 1][player.getX() + 1] = true;
-        } else if (dinput.equalsIgnoreCase("f") && direction == "wa") {
+        } else if (dinput.equalsIgnoreCase("f") && direction == "wa" && player.isHasAtk()) {
             map[player.getY() - 1][player.getX() - 1] = "<^";
             trap[player.getY() - 1][player.getX() - 1] = true;
-        } else if (dinput.equalsIgnoreCase("f") && direction == "sd") {
+        } else if (dinput.equalsIgnoreCase("f") && direction == "sd" && player.isHasAtk()) {
             map[player.getY() + 1][player.getX() + 1] = "<^";
             trap[player.getY() + 1][player.getX() + 1] = true;
-        } else if (dinput.equalsIgnoreCase("f") && direction == "sa") {
+        } else if (dinput.equalsIgnoreCase("f") && direction == "sa" && player.isHasAtk()) {
             map[player.getY() + 1][player.getX() - 1] = "//";
             trap[player.getY() + 1][player.getX() - 1] = true;
-        } else if (dinput.contains("f") && dinput.contains("wd")) {
+        } else if (dinput.contains("f") && dinput.contains("wd") && player.isHasAtk()) {
             map[player.getY() - 1][player.getX() + 1] = "//";
             trap[player.getY() - 1][player.getX() + 1] = true;
-        } else if (dinput.contains("f") && dinput.contains("wa")) {
+        } else if (dinput.contains("f") && dinput.contains("wa") && player.isHasAtk()) {
             map[player.getY() - 1][player.getX() - 1] = "<^";
             trap[player.getY() - 1][player.getX() - 1] = true;
-        } else if (dinput.contains("f") && dinput.contains("sd")) {
+        } else if (dinput.contains("f") && dinput.contains("sd") && player.isHasAtk()) {
             map[player.getY() + 1][player.getX() + 1] = "<^";
             trap[player.getY() + 1][player.getX() + 1] = true;
-        } else if (dinput.contains("f") && dinput.contains("sa")) {
+        } else if (dinput.contains("f") && dinput.contains("sa") && player.isHasAtk()) {
             map[player.getY() + 1][player.getX() - 1] = "//";
             trap[player.getY() + 1][player.getX() - 1] = true;
-        } else if (dinput.contains("f") && dinput.contains("w")) {
+        } else if (dinput.contains("f") && dinput.contains("w") && player.isHasAtk()) {
             map[player.getY() - 1][player.getX()] = "^^";
             trap[player.getY() - 1][player.getX()] = true;
-        } else if (dinput.contains("f") && dinput.contains("s")) {
+        } else if (dinput.contains("f") && dinput.contains("s") && player.isHasAtk()) {
             map[player.getY() + 1][player.getX()] = "vv";
             trap[player.getY() + 1][player.getX()] = true;
-        } else if (dinput.contains("f") && dinput.contains("d")) {
+        } else if (dinput.contains("f") && dinput.contains("d") && player.isHasAtk()) {
             map[player.getY()][player.getX() + 1] = ">>";
             trap[player.getY()][player.getX() + 1] = true;
-        } else if (dinput.contains("f") && dinput.contains("a")) {
+        } else if (dinput.contains("f") && dinput.contains("a") && player.isHasAtk()) {
             map[player.getY()][player.getX() - 1] = "<<";
             trap[player.getY()][player.getX() - 1] = true;
-        } else if (dinput.equalsIgnoreCase("g")) {
-//            stun = true;
+        } else if (dinput.equalsIgnoreCase("g") && player.isHasStun()) {
             counter = 0;
             map[player.getY() - 1][player.getX()] = "**";
             map[player.getY() + 1][player.getX()] = "**";
@@ -366,7 +355,8 @@ public class GridGame {
             map[player.getY() - 1][player.getX() - 1] = "**";
             map[player.getY() + 1][player.getX() + 1] = "**";
             map[player.getY() + 1][player.getX() - 1] = "**";
-        } else {
+        }  
+        else {
             System.out.println("Sorry, wrong input or reached map edge");
             input(map, trap, treasure, enemy, wall);
         }
