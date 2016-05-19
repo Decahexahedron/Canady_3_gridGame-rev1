@@ -3,12 +3,28 @@ package pkg2darrays;
 public class Player {
 
     private int x, nx, y, ny;
-    private int level, hp, jumps;
+    private int level, hp, jumps, stunLevel, jumpLevel;
     private boolean isAlive, hasAtk, hasJump, hasStun;
+
+    public int getStunLevel() {
+        return stunLevel;
+    }
+
+    public int getJumpLevel() {
+        return jumpLevel;
+    }
 
     Player(int a, int b) {
         this.x = a;
         this.y = b;
+    }
+
+    public void setStunLevel(int stunLevel) {
+        this.stunLevel = stunLevel;
+    }
+
+    public void setJumpLevel(int jumpLevel) {
+        this.jumpLevel = jumpLevel;
     }
 
     public int getX() {

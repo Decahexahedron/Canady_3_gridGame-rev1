@@ -62,6 +62,21 @@ public class GridGame {
             player.setHasAtk(true);
         } else if (level.equals("s")) {
             player.setHasStun(true);
+        } else {
+            System.out.println("Try an input I asked for, nerd");
+            begin();
+        }
+    }
+
+    public static void levelup() {
+        System.out.println("You leveled up!");
+        
+        if (player.isHasAtk()) {
+            System.out.println("You can now unlock stun or jump.");
+        } else if (player.isHasStun()) {
+            System.out.println("You can unlock attack or jump, or upgrade your stun.");
+        } else if (player.isHasJump()) {
+            System.out.println("You can unlock attack or stun, or upgrade your jump");
         }
     }
 
@@ -216,8 +231,9 @@ public class GridGame {
             if (e.getY() == player.getY() && e.getX() == player.getX() && e.isAlive()) {
                 game = false;
             }
-            if (trap[e.getY()][e.getX()]) {
+            if (trap[e.getY()][e.getX()] && e.isAlive()) {
                 e.setAlive(false);
+                levelup();
             }
         }
     }
@@ -355,8 +371,7 @@ public class GridGame {
             map[player.getY() - 1][player.getX() - 1] = "**";
             map[player.getY() + 1][player.getX() + 1] = "**";
             map[player.getY() + 1][player.getX() - 1] = "**";
-        }  
-        else {
+        } else {
             System.out.println("Sorry, wrong input or reached map edge");
             input(map, trap, treasure, enemy, wall);
         }
