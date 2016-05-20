@@ -5,11 +5,11 @@ import java.util.ArrayList;
 
 public class GridGame {
 
-    public static int maxX, maxY, score, counter;
+    public static int maxX, maxY, score, counter, jumptimer;
     static String dinput, level;
     static String direction;
     static Scanner sc = new Scanner(System.in);
-    public static boolean game, stun;
+    public static boolean game, stun, jumpwait;
     public static Player player;
     public static Enemy enemya, enemyb, enemyc;
     String save = "░░";
@@ -22,6 +22,7 @@ public class GridGame {
         maxY = 30;
         counter = 0;
         stun = true;
+        jumptimer = 0;
         player = new Player(4, 4);
 
         String[][] map = new String[maxX][maxY];
@@ -69,14 +70,70 @@ public class GridGame {
     }
 
     public static void levelup() {
-        System.out.println("You leveled up!");
-        
-        if (player.isHasAtk()) {
-            System.out.println("You can now unlock stun or jump.");
+        System.out.println("You leveled up! (an enemy died)");
+
+        if (player.isHasAtk() && player.isHasStun() && player.isHasJump()) {
+            System.out.println("Level up your stun (s) or jump (j).");
+            level = sc.nextLine().toLowerCase();
+            if (level.equals("s")) {
+                player.setStunLevel(player.getStunLevel() + 1);
+            } else if (level.equals("j")) {
+                player.setJumpLevel(player.getJumpLevel() + 1);
+            }
+        } else if (player.isHasAtk() && player.isHasStun()) {
+            System.out.println("Level up your stun (s) or unlock jump (j).");
+            level = sc.nextLine().toLowerCase();
+            if (level.equals("s")) {
+                player.setStunLevel(player.getStunLevel() + 1);
+            } else if (level.equals("j")) {
+                player.setHasJump(true);
+            }
+        } else if (player.isHasAtk() && player.isHasJump()) {
+            System.out.println("Level up your jump (j) or unlock stun (s).");
+            level = sc.nextLine().toLowerCase();
+            if (level.equals("j")) {
+                player.setJumpLevel(player.getJumpLevel() + 1);
+            } else if (level.equals("s")) {
+                player.setHasStun(true);
+            }
+        } else if (player.isHasStun() && player.isHasJump()) {
+            System.out.println("Unlock attack (a), level up your stun (s), or jump (j).");
+            level = sc.nextLine().toLowerCase();
+            if (level.equals("a")) {
+                player.setHasAtk(true);
+            } else if (level.equals("s")) {
+                player.setStunLevel(player.getStunLevel() + 1);
+            } else if (level.equals("j ")) {
+                player.setJumpLevel(player.getJumpLevel() + 1);
+            }
+        } else if (player.isHasAtk()) {
+            System.out.println("You can now unlock stun (s) or jump (j).");
+            level = sc.nextLine().toLowerCase();
+            if (level.equals("s")) {
+                player.setHasStun(true);
+            } else if (level.equals("j")) {
+                player.setHasJump(true);
+            }
         } else if (player.isHasStun()) {
-            System.out.println("You can unlock attack or jump, or upgrade your stun.");
+            System.out.println("You can unlock attack (a) or jump (j), or upgrade your stun (s).");
+            level = sc.nextLine().toLowerCase();
+            if (level.equals("a")) {
+                player.setHasAtk(true);
+            }
+//            level = sc.nextLine().toLowerCase();
+            if (level.equals("j")) {
+                player.setHasJump(true);
+            }
         } else if (player.isHasJump()) {
-            System.out.println("You can unlock attack or stun, or upgrade your jump");
+            System.out.println("You can unlock attack (a) or stun (s), or upgrade your jump (j).");
+            level = sc.nextLine().toLowerCase();
+            if (level.equals("a")) {
+                player.setHasStun(true);
+            }
+//            level = sc.nextLine().toLowerCase();
+            if (level.equals("j")) {
+                player.setHasJump(true);
+            }
         }
     }
 
@@ -98,6 +155,7 @@ public class GridGame {
     }
 
     public static void setup(boolean[][] trap, boolean[][] treasure, boolean[][] wall) {
+
         wall[4][2] = true;
         if (trap[player.getY()][player.getY()] == true) {
             player.setX((int) Math.floor(Math.random() * maxX));
@@ -132,6 +190,7 @@ public class GridGame {
         enemya.setAlive(true);
         enemyb.setAlive(true);
         enemyc.setAlive(true);
+        player.setJumpLevel(2);
     }
 
     public static void help() {
@@ -140,7 +199,8 @@ public class GridGame {
                 + "Upgrading stun will increase the turns an enemy is stunned.\n"
                 + "Attacking by just typing f will attack in the direction you just moved.\n"
                 + "Typing a direction and f in one input will pivot-attack, or attack in that direction without moving.\n"
-                + "Diagonal pivot-attacks only work if you type the vertical direction first.");
+                + "Jump inputs work like pivot-attacks; you need to enter a direction with j.\n"
+                + "It starts at moving 2 spaces, and leveling it up will increase the spaces jumpwait by 1 each time. \n");
     }
 
     public static void grid(String[][] map, boolean[][] trap, boolean[][] treasure, int[][] enemy, boolean[][] wall) {
@@ -258,6 +318,13 @@ public class GridGame {
         }
         player.setX(player.getX() + movex);
         player.setY(player.getY() + movey);
+        if (jumpwait) {
+            jumptimer--;
+            System.out.println("Time until next jump: " + jumptimer +" turns \n");
+        }
+        if (jumptimer == 0) {
+            jumpwait = false;
+        }
     }
 
     public static void clear(String[][] map, boolean[][] trap) {
@@ -337,16 +404,16 @@ public class GridGame {
         } else if (dinput.equalsIgnoreCase("f") && direction == "sa" && player.isHasAtk()) {
             map[player.getY() + 1][player.getX() - 1] = "//";
             trap[player.getY() + 1][player.getX() - 1] = true;
-        } else if (dinput.contains("f") && dinput.contains("wd") && player.isHasAtk()) {
+        } else if (dinput.contains("f") && dinput.contains("wd") && player.isHasAtk() || dinput.contains("f") && dinput.contains("dw") && player.isHasAtk()) {
             map[player.getY() - 1][player.getX() + 1] = "//";
             trap[player.getY() - 1][player.getX() + 1] = true;
-        } else if (dinput.contains("f") && dinput.contains("wa") && player.isHasAtk()) {
+        } else if (dinput.contains("f") && dinput.contains("wa") && player.isHasAtk() || dinput.contains("f") && dinput.contains("aw") && player.isHasAtk()) {
             map[player.getY() - 1][player.getX() - 1] = "<^";
             trap[player.getY() - 1][player.getX() - 1] = true;
-        } else if (dinput.contains("f") && dinput.contains("sd") && player.isHasAtk()) {
+        } else if (dinput.contains("f") && dinput.contains("sd") && player.isHasAtk() || dinput.contains("f") && dinput.contains("ds") && player.isHasAtk()) {
             map[player.getY() + 1][player.getX() + 1] = "<^";
             trap[player.getY() + 1][player.getX() + 1] = true;
-        } else if (dinput.contains("f") && dinput.contains("sa") && player.isHasAtk()) {
+        } else if (dinput.contains("f") && dinput.contains("sa") && player.isHasAtk() || dinput.contains("f") && dinput.contains("as") && player.isHasAtk()) {
             map[player.getY() + 1][player.getX() - 1] = "//";
             trap[player.getY() + 1][player.getX() - 1] = true;
         } else if (dinput.contains("f") && dinput.contains("w") && player.isHasAtk()) {
@@ -361,6 +428,41 @@ public class GridGame {
         } else if (dinput.contains("f") && dinput.contains("a") && player.isHasAtk()) {
             map[player.getY()][player.getX() - 1] = "<<";
             trap[player.getY()][player.getX() - 1] = true;
+        } else if (dinput.contains("j") && dinput.contains("wa") && player.isHasJump() || dinput.contains("j") && dinput.contains("aw") && player.isHasJump()) {
+            move(map, -1 * player.getJumpLevel(), -1 * player.getJumpLevel(), trap, treasure, enemy, wall);
+            jumptimer = 4;
+            jumpwait = true;
+        } else if (dinput.contains("j") && dinput.contains("wd") && player.isHasJump() && jumptimer == 0
+                || dinput.contains("j") && dinput.contains("dw") && player.isHasJump() && jumptimer == 0) {
+            move(map, 1 * player.getJumpLevel(), -1 * player.getJumpLevel(), trap, treasure, enemy, wall);
+            jumptimer = 4;
+            jumpwait = true;
+        } else if (dinput.contains("j") && dinput.contains("sa") && player.isHasJump() && jumptimer == 0
+                || dinput.contains("j") && dinput.contains("as") && player.isHasJump() && jumptimer == 0) {
+            move(map, -1 * player.getJumpLevel(), 1 * player.getJumpLevel(), trap, treasure, enemy, wall);
+            jumptimer = 4;
+            jumpwait = true;
+        } else if (dinput.contains("j") && dinput.contains("sd") && player.isHasJump() && jumptimer == 0
+                || dinput.contains("j") && dinput.contains("ds") && player.isHasJump() && jumptimer == 0) {
+            move(map, 1 * player.getJumpLevel(), 1 * player.getJumpLevel(), trap, treasure, enemy, wall);
+            jumptimer = 4;
+            jumpwait = true;
+        } else if (dinput.contains("j") && dinput.contains("w") && player.isHasJump() && jumptimer == 0) {
+            move(map, 0 * player.getJumpLevel(), -1 * player.getJumpLevel(), trap, treasure, enemy, wall);
+            jumptimer = 4;
+            jumpwait = true;
+        } else if (dinput.contains("j") && dinput.contains("s") && player.isHasJump() && jumptimer == 0) {
+            move(map, 0 * player.getJumpLevel(), 1 * player.getJumpLevel(), trap, treasure, enemy, wall);
+            jumptimer = 4;
+            jumpwait = true;
+        } else if (dinput.contains("j") && dinput.contains("a") && player.isHasJump() && jumptimer == 0) {
+            move(map, -1 * player.getJumpLevel(), 0 * player.getJumpLevel(), trap, treasure, enemy, wall);
+            jumptimer = 4;
+            jumpwait = true;
+        } else if (dinput.contains("j") && dinput.contains("d") && player.isHasJump() && jumptimer == 0) {
+            move(map, 1 * player.getJumpLevel(), 0 * player.getJumpLevel(), trap, treasure, enemy, wall);
+            jumptimer = 4;
+            jumpwait = true;
         } else if (dinput.equalsIgnoreCase("g") && player.isHasStun()) {
             counter = 0;
             map[player.getY() - 1][player.getX()] = "**";
@@ -372,7 +474,7 @@ public class GridGame {
             map[player.getY() + 1][player.getX() + 1] = "**";
             map[player.getY() + 1][player.getX() - 1] = "**";
         } else {
-            System.out.println("Sorry, wrong input or reached map edge");
+            System.out.println("Sorry, wrong input, move not unlocked, or reached map edge");
             input(map, trap, treasure, enemy, wall);
         }
         if (game) {

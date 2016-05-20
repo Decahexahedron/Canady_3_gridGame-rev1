@@ -3,7 +3,7 @@ package pkg2darrays;
 public class Player {
 
     private int x, nx, y, ny;
-    private int level, hp, jumps, stunLevel, jumpLevel;
+    private int level, hp, jumps, stunLevel = 0, jumpLevel = 0;
     private boolean isAlive, hasAtk, hasJump, hasStun;
 
     public int getStunLevel() {
